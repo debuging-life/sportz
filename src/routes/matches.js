@@ -1,4 +1,4 @@
-import { request, Router } from "express";
+import { Router } from "express";
 import { createMatchSchema, listMatchesQuerySchema } from "../validation/matches.js";
 import { db } from "../db/db.js";
 import { matches } from "../db/schema.js";
@@ -13,7 +13,7 @@ matchRouter.get("/", async (req, res) => {
   const parsed = listMatchesQuerySchema.safeParse(req.query)
 
   if (!parsed.success) {
-    return res.status(400).json({ error: "Invalid paylaod", details: JSON.stringify(parsed.error) })
+    return res.status(400).json({ error: "Invalid paylaod", details: parsed.error.issues })
   }
 
   const limit = Math.min(parsed.data.limit ?? 50, MAX_LIMIT)
@@ -25,7 +25,7 @@ matchRouter.get("/", async (req, res) => {
 
     res.json({ data })
   } catch (error) {
-    return res.status(500).json({ error: 'Failed to create match.', details: JSON.stringify(e) })
+    return res.status(500).json({ error: 'Failed to create match.', details: JSON.stringify(error) })
   }
 })
 
@@ -33,7 +33,7 @@ matchRouter.post('/', async (req, res) => {
   const parsed = createMatchSchema.safeParse(req.body)
 
   if (!parsed.success) {
-    return res.status(400).json({ error: "Invalid paylaod", details: parsed.error })
+    return res.status(400).json({ error: "Invalid paylaod", details: parsed.error.issues })
   }
 
   const { data: { startTime, endTime, homeScore, awayScore } } = parsed
